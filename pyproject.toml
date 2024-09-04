@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "geeutils"
+version = "0.0.1"
+authors = [
+  { name="Ben Collings", email="bmcollings92@gmail.com" },
+]
+description = "Series of tools for optical satellite image processing with Google Earth Engine Python API"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "earthengine-api",
+    "gdal",
+    "geopandas",
+    "pandas",
+    "requests"
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/bmcollings/geeutils"
+
+[project.license]
+text = "MIT"
