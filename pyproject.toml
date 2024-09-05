@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "geeutil"
-version = "0.0.2"
+version = "0.0.3"
 authors = [
   { name="Ben Collings", email="bmcollings92@gmail.com" },
 ]
@@ -16,7 +16,8 @@ dependencies = [
     "gdal",
     "geopandas",
     "pandas",
-    "requests"
+    "requests",
+    "tqdm"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
