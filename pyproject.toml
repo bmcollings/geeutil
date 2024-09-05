@@ -3,14 +3,14 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "geeutils"
-version = "0.0.1"
+name = "geeutil"
+version = "0.0.2"
 authors = [
   { name="Ben Collings", email="bmcollings92@gmail.com" },
 ]
 description = "Series of tools for optical satellite image processing with Google Earth Engine Python API"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.8"
 dependencies = [
     "earthengine-api",
     "gdal",
@@ -25,7 +25,7 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/bmcollings/geeutils"
+Homepage = "https://github.com/bmcollings/geeutil"
 
 [project.license]
 text = "MIT"
