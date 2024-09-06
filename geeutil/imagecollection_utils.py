@@ -10,7 +10,7 @@ ee.Initialize()
 
 # define global variables
 # define valid sensors
-valid_optical_sensors = {'S2', 'LS4', 'LS5', 'LS7', 'LS8', 'LS9'}
+valid_optical_sensors = {'S2', 'LS4', 'LS5', 'LS7', 'LS8', 'LS9', 'HLSl30'}
 valid_sar_sensors = {'S1'}
 # dict containing sensor optical image bands 
 img_bands = {'S2': ['B2', 'B3', 'B4', 'B5', 'B6', 'B7','B8', 'B8A', 'B11', 'B12'],
@@ -25,13 +25,14 @@ img_bands = {'S2': ['B2', 'B3', 'B4', 'B5', 'B6', 'B7','B8', 'B8A', 'B11', 'B12'
         'S1': ['HH', 'HV', 'VV', 'VH', 'angle']}
 
 # dict containing sensor GEE snippets for optical collections store SR and TOA collections as list
-sensor_id = {'S2': ['COPERNICUS/S2_SR', 'COPERNICUS/S2'],
+sensor_id = {'S2': ['COPERNICUS/S2_SR_HARMONIZED', 'COPERNICUS/S2_HARMONIZED'],
         'LS4': ['LANDSAT/LT04/C02/T1_L2', 'LANDSAT/LT04/C02/T1_TOA'],     
         'LS5': ['LANDSAT/LT05/C02/T1_L2', 'LANDSAT/LT05/C02/T1_TOA'],
         'LS7': ['LANDSAT/LE07/C02/T1_L2', 'LANDSAT/LE07/C02/T1_TOA'],
         'LS8': ['LANDSAT/LC08/C02/T1_L2', 'LANDSAT/LC08/C02/T1_TOA'],
         'LS9': ['LANDSAT/LC09/C02/T1_L2', 'LANDSAT/LC09/C02/T1_TOA'],
-        'S1': ['COPERNICUS/S1_GRD']} 
+        'S1': ['COPERNICUS/S1_GRD'],
+        'HLSl30': ['NASA/HLS/HLSL30/v002']} 
 
 # list of band names
 band_names = ['blue', 'green', 'red', 'RE1', 'RE2', 'RE3', 'NIR', 'RE4', 'SWIR1', 'SWIR2']
@@ -148,6 +149,16 @@ def gen_imageCollection(year, roi, sensor, cloud_cover=None, surface_reflectance
                         # mask clouds
                         .map(s2_utils.mask_clouds)
                         # rename bands
+                        .map(rename_img_bands(sensor)))
+                
+        elif sensor == 'HLSl30':
+               # filter collection by cloud cover if cloud_cover is not none
+                if cloud_cover is not None: 
+                        collection = collection.filterMetadata('CLOUD_COVERAGE', 'less_than', cloud_cover)
+                
+                # run landsat cloudmasking and rename bands
+                img_collection = (collection 
+                        .map(landsat_utils.mask_clouds_LS_qa) 
                         .map(rename_img_bands(sensor)))
                 
         # perform landsat cloudmasking
