@@ -40,5 +40,27 @@ def apply_scale_factors(image):
     return image.addBands(opticalBands, None, True) \
               .addBands(thermalBands, None, True)
 
+def mask_clouds_HLS(image):
+    """
+    function to mask harmonised landsat ee.image object using Fmask band
+    
+    Args
+    landsat ee.image object
+    
+    Returns
+    landsat ee.image object with cloud masked
+    """
+    # define bit_masks
+    shadow_bit_mask = (1 << 3)
+    cloud_bit_mask = (1 << 1)
+    dcloudBitMask = (1 << 2)
+    # get qa image band
+    qa = image.select('Fmask')
 
+    # define mask
+    mask = qa.bitwiseAnd(shadow_bit_mask).eq(0) \
+        .And(qa.bitwiseAnd(cloud_bit_mask).eq(0)) \
+        .And(qa.bitwiseAnd(dcloudBitMask).eq(0))
+    
+    return image.updateMask(mask)
     
