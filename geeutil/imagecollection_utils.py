@@ -23,6 +23,7 @@ img_bands = {'S2': ['B2', 'B3', 'B4', 'B5', 'B6', 'B7','B8', 'B8A', 'B11', 'B12'
         'LS8': ['B2', 'B3', 'B4', 'B5', 'B6', 'B7'],
         'HLSL30': ['B2', 'B3', 'B4', 'B5', 'B6', 'B7'],
         'LS8_sr': ['SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B6', 'SR_B7'],
+        'LS9_sr': ['SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B6', 'SR_B7'],
         'S1': ['HH', 'HV', 'VV', 'VH', 'angle']}
 
 # dict containing sensor GEE snippets for optical collections store SR and TOA collections as list
