@@ -1,8 +1,6 @@
 # import modules
 import ee
 
-# authenticate ee
-ee.Initialize()
 
 def mask_clouds_LS_qa(image):
     """

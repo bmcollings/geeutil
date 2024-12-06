@@ -1,8 +1,6 @@
 # import modules
 import ee 
 
-# authenticate ee
-ee.Initialize()
 
 def mask_clouds_S2_QA60(image):
     """function to mask Sentinel-2 ee.Image object using QA60 band

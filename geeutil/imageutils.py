@@ -6,9 +6,6 @@ import requests
 from osgeo import gdal
 
 
-# Initialize GEE
-ee.Initialize()
-
 
 def rename_img_bands(img_bands, band_names):
     """function to rename optical image bands for ee.Image in ee.ImageCollection when using .map function
@@ -67,7 +64,7 @@ def set_band_names(image, band_names):
         if not imgBand is None:
             imgBand.SetDescription(bandName)
         else:
-            raise exception("Could not open the image band: ", band)
+            raise Exception("Could not open the image band: ", band)
 
 
 def download_img_local(ee_image, folder, name, region, crs, scale, format='GEO_TIFF'):

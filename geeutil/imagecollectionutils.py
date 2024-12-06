@@ -1,14 +1,15 @@
 # import modules
 import ee
-import geeutil.feature_utils as feature_utils
-import geeutil.image_utils as image_utils
-import geeutil.sentinel2_utils as s2_utils
-import geeutil.landsat_utils as landsat_utils
+import geeutil.featureutils as featureutils
+import geeutil.imageutils as imageutils
+import geeutil.s2utils as s2_utils
+import geeutil.lsutils as lsutils
+import geeutil.ndutils as ndutils
+import os
+from tqdm.contrib.concurrent import thread_map
+from itertools import repeat
 
-# Initialize GEE
-ee.Initialize()
 
-# define global variables
 # define valid sensors
 valid_optical_sensors = {'S2', 'LS4', 'LS5', 'LS7', 'LS8', 'LS9', 'HLSL30'}
 valid_sar_sensors = {'S1'}
@@ -63,12 +64,13 @@ def rename_img_bands(sensor):
     return(rename)
 
 
-def gen_imageCollection_from_shp(year, region_shp, sensor):
+def gen_imageCollection_from_shp(start_date, end_date, region_shp, sensor):
     """
     function that returns annual ee.ImageCollection for Landsat or Sentinel surface reflectance and top-of-atmosphere images.  
     
     Args
-    year - year as integer eg. 2019
+    start_date - string format yyyy-mm-dd
+        end_date - string format yyyy-mm-dd
     sensor - sensor type to build composite image as string (S2, LS7, LS8)
     region_shp - shapefile defining region for composite, accepts polygons and lines, if polyline representing coastline output will be coast
             zone defined as 3km buffer zone around coastline
@@ -77,22 +79,14 @@ def gen_imageCollection_from_shp(year, region_shp, sensor):
     ee.ImageCollection object for specified sensor, region and year
     """
     
-    # define date ranges 
-    start_date = str(year) + '-01-01'
-    # if sensor = LS4 composite is from 1988 - 1990
-    if sensor == 'LS4':
-           end_date = f'{year + 2}-01-01'
-    else:
-        end_date = str(year + 1) + '-01-01'
-
     # raise error if sensor isn't compatible
     if sensor not in valid_optical_sensors:
             raise ValueError(sensor + ' is not compatible, must be S2, LS4, LS5, LS7 or LS8.')
     
-    print("Generating composite image for {} for {}".format(sensor, year))
+    print("Generating composite image for {} from {} to {}".format(sensor, start_date, end_date))
 
     # convert region to ee.featureCollection 
-    roi = feature_utils.shp_to_featureCollection(region_shp)
+    roi = featureutils.shp_to_featureCollection(region_shp)
 
     # define sr image collection
     collection = ee.ImageCollection(sensor_id[sensor][0]) \
@@ -101,12 +95,13 @@ def gen_imageCollection_from_shp(year, region_shp, sensor):
     
     return collection
 
-def gen_imageCollection(year, roi, sensor, cloud_cover=None, surface_reflectance=True):
+def gen_imageCollection(start_date, end_date, roi, sensor, cloud_cover=None, surface_reflectance=True):
         """
         function that returns annual ee.ImageCollection for Landsat or Sentinel surface reflectance and top-of-atmosphere images.  
 
         Args
-        year - year as integer eg. 2019
+        start_date - string format yyyy-mm-dd
+        end_date - string format yyyy-mm-dd
         sensor - sensor type to build composite image as string (S2, LS7, LS8)
         roi - ee.featureCollection object defining region of interest
         cloud_cover - integer representing cloud cover % for scenes to be included. Default=None and all scenes are considered. 
@@ -115,19 +110,9 @@ def gen_imageCollection(year, roi, sensor, cloud_cover=None, surface_reflectance
         ee.ImageCollection object for specified sensor, region and year
         """
 
-        # define date ranges 
-        start_date = str(year) + '-01-01'
-       # if sensor = LS4 composite is from 1988 - 1990
-        if sensor == 'LS4':
-                end_date = f'{year + 2}-01-01'
-        else:
-                end_date = str(year + 1) + '-01-01'
-
         # raise error if sensor isn't compatible
         if sensor not in valid_optical_sensors:
                 raise ValueError(sensor + ' is not compatible, must be S2, LS4, LS5, LS7 or LS8.')
-
-        #print("Generating composite image for {} for {}".format(sensor, year))
 
         # define sr image collection
         collection = ee.ImageCollection(sensor_id[sensor][0]) \
@@ -160,7 +145,7 @@ def gen_imageCollection(year, roi, sensor, cloud_cover=None, surface_reflectance
                 
                 # run landsat cloudmasking and rename bands
                 img_collection = (collection 
-                        .map(landsat_utils.mask_clouds_HLS) 
+                        .map(lsutils.mask_clouds_HLS) 
                         .map(rename_img_bands(sensor)))
                 
         # perform landsat cloudmasking
@@ -176,17 +161,18 @@ def gen_imageCollection(year, roi, sensor, cloud_cover=None, surface_reflectance
                 
                 # run landsat cloudmasking and rename bands
                 img_collection = (collection 
-                        .map(landsat_utils.mask_clouds_LS_qa) 
+                        .map(lsutils.mask_clouds_LS_qa) 
                         .map(rename_img_bands(sensor)))
 
         return img_collection
 
-def return_least_cloudy_image(year, roi, sensor, cloud_cover=None, return_least_cloudy=True):
+def return_least_cloudy_image(start_date, end_date, roi, sensor, cloud_cover=None, return_least_cloudy=True):
         """
         function that returns annual ee.ImageCollection for Landsat or Sentinel surface reflectance and top-of-atmosphere images.  
 
         Args
-        year - year as integer eg. 2019
+        start_date - string format yyyy-mm-dd
+        end_date - string format yyyy-mm-dd
         sensor - sensor type to build composite image as string (S2, LS7, LS8)
         roi - ee.featureCollection object defining region of interest
         cloud_cover - integer representing cloud cover % for scenes to be included. Default=None and all scenes are considered. 
@@ -195,15 +181,9 @@ def return_least_cloudy_image(year, roi, sensor, cloud_cover=None, return_least_
         ee.ImageCollection object for specified sensor, region and year
         """
 
-        # define date ranges 
-        start_date = str(year) + '-01-01'
-        end_date = str(year + 1) + '-01-01'
-
         # raise error if sensor isn't compatible
         if sensor not in valid_optical_sensors:
                 raise ValueError(sensor + ' is not compatible, must be S2, LS5, LS7 or LS8.')
-
-        #print("Generating composite image for {} for {}".format(sensor, year))
 
         # define sr image collection
         collection = ee.ImageCollection(sensor_id[sensor][1]) \
@@ -222,3 +202,47 @@ def return_least_cloudy_image(year, roi, sensor, cloud_cover=None, return_least_
                         .map(rename_img_bands(sensor))
 
         return ee.Image(collection.first())
+
+def download_images_in_collection(ee_collection, region_of_interest, image_bands,  image_directory_path,
+                                  crs="EPSG:2193", pixel_size=20, no_data_val=-99):
+        """
+        function to download imagery in ee.ImageCollection object to a local directory as GeoTiff files. 
+
+        Args
+        img_collection - ee.ImageCollection object with imagery to download
+        region_of_interest - ee.FeatureCollection object of area for which image will be downloaded
+        image_bands - list of image bands that are to be downloaded
+        image_directory_path - path to directory where imagery will be saved
+        crs - coordinate reference system for downloaded images
+        pixel_size - integer representing spatial resolution of downloaded images
+        no_data_val - integer representing no data val for unvalid data in images
+        """
+        # calculate ndvi and mndwi
+        ee_collection = (ee_collection.map(ndutils.apply_ndvi)
+                        .map(ndutils.apply_mndwi))
+        
+        # return collection as list 
+        img_list = ee_collection.toList(ee_collection.size().getInfo())
+
+        def down_img_mt(img_id, img_collection_list, directory, roi, crs, scale, no_data_val):
+            img = ee.Image(img_collection_list.get(img_id)).select(image_bands)
+            img = img.clip(roi).unmask(no_data_val) # clip img for export
+            system_index = img.get("system:index").getInfo() # fn of image = system_index
+            fn = f"{system_index}.tif"
+            image_path = f"{directory}/{fn}"
+            if os.path.exists(f"{image_path}"):
+                print(f"{fn} already downloaded.")
+            else:
+                try:
+                    imageutils.download_img_local(img.toFloat(), directory, fn, roi.geometry(), crs, scale)
+                except:
+                    print(f"issue with {fn}, continuing")
+        
+        iterator = list(range(0, ee_collection.size().getInfo()))
+        
+        try:
+                thread_map(down_img_mt, iterator, repeat(img_list), repeat(image_directory_path), repeat(region_of_interest), repeat(crs), repeat(pixel_size), repeat(no_data_val))
+                print("images downloaded.")
+        except ee.ee_exception.EEException as e:
+               print(f"Encountered earthenging error: {e}. Error raised...")
+        raise               
