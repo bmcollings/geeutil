@@ -6,7 +6,6 @@ import requests
 from osgeo import gdal
 
 
-
 def rename_img_bands(img_bands, band_names):
     """function to rename optical image bands for ee.Image in ee.ImageCollection when using .map function
     

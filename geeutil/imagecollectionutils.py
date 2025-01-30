@@ -11,7 +11,7 @@ from itertools import repeat
 
 
 # define valid sensors
-valid_optical_sensors = {'S2', 'LS4', 'LS5', 'LS7', 'LS8', 'LS9', 'HLSL30'}
+valid_optical_sensors = {'S2', 'LS4', 'LS5', 'LS7', 'LS8', 'LS9', 'HLSL30', 'HLSS30'}
 valid_sar_sensors = {'S1'}
 # dict containing sensor optical image bands 
 img_bands = {'S2': ['B2', 'B3', 'B4', 'B5', 'B6', 'B7','B8', 'B8A', 'B11', 'B12'],
@@ -23,6 +23,7 @@ img_bands = {'S2': ['B2', 'B3', 'B4', 'B5', 'B6', 'B7','B8', 'B8A', 'B11', 'B12'
         'LS7_sr': ['SR_B1', 'SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B7'],
         'LS8': ['B2', 'B3', 'B4', 'B5', 'B6', 'B7'],
         'HLSL30': ['B2', 'B3', 'B4', 'B5', 'B6', 'B7'],
+        'HLSS30': ['B2', 'B3', 'B4', 'B5', 'B6', 'B7','B8', 'B8A', 'B11', 'B12'],
         'LS8_sr': ['SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B6', 'SR_B7'],
         'LS9_sr': ['SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B6', 'SR_B7'],
         'S1': ['HH', 'HV', 'VV', 'VH', 'angle']}
@@ -56,6 +57,8 @@ def rename_img_bands(sensor):
         names = []
         if sensor == 'S2':
                 names = band_names
+        elif sensor == 'HLSS30':
+               names = band_names[:6] + band_names[7:8] + band_names[6:7] + band_names[-2:]
         else:
                 names = band_names[:3] + band_names[6:7] + band_names[-2:]
         
@@ -138,7 +141,7 @@ def gen_imageCollection(start_date, end_date, roi, sensor, cloud_cover=None, sur
                         # rename bands
                         .map(rename_img_bands(sensor)))
                 
-        elif sensor == 'HLSL30':
+        elif sensor == 'HLSL30' or sensor == 'HLSS30':
                # filter collection by cloud cover if cloud_cover is not none
                 if cloud_cover is not None: 
                         collection = collection.filterMetadata('CLOUD_COVERAGE', 'less_than', cloud_cover)
