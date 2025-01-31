@@ -36,7 +36,8 @@ sensor_id = {'S2': ['COPERNICUS/S2_SR_HARMONIZED', 'COPERNICUS/S2_HARMONIZED'],
         'LS8': ['LANDSAT/LC08/C02/T1_L2', 'LANDSAT/LC08/C02/T1_TOA'],
         'LS9': ['LANDSAT/LC09/C02/T1_L2', 'LANDSAT/LC09/C02/T1_TOA'],
         'S1': ['COPERNICUS/S1_GRD'],
-        'HLSL30': ['NASA/HLS/HLSL30/v002']} 
+        'HLSL30': ['NASA/HLS/HLSL30/v002'],
+        'HLSS30': ['NASA/HLS/HLSS30/v002']} 
 
 # list of band names
 band_names = ['blue', 'green', 'red', 'RE1', 'RE2', 'RE3', 'NIR', 'RE4', 'SWIR1', 'SWIR2']
