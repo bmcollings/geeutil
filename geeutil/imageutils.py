@@ -130,3 +130,47 @@ def set_nodata_val(image, no_data_val):
     ds = gdal.OpenEx(image, gdal.GA_Update)
     for i in range(ds.RasterCount):
         ds.GetRasterBand(i + 1).SetNoDataValue(no_data_val)
+
+def clip_images_to_region(region):
+    """
+    function to clip images in ee.ImageCollection using .map() to region defined by featureCollection
+    Args
+    region - ee.featureCollection representing the region to be clipped to. 
+    """
+    def clip(img):
+        return img.clipToCollection(region)
+    return(clip)
+
+def return_region_pxl_count(img):
+    """
+    function to return number of pixels in image, based on one band in image defined by band_name. 
+    """
+    # def calc_pxl_count(img):
+    band = img.bandNames().get(0) # define first band name from image
+    pxl_count = img.select([band]).reduceRegion(
+        reducer=ee.Reducer.count(),
+        geometry=img.geometry(),
+        maxPixels=1e10
+    )
+    return img.set('region_pixel_count', ee.Number(pxl_count.get(band)))
+
+def return_cloud_pxl_count(img):
+    """"
+    function to return number of cloudy pixels in an image. Image must contain cloud mask band where band name = 'cloud'
+    """
+    cloud_mask = img.select('clouds') # cloud band is called clouds
+    band =  img.bandNames().get(0) # define first band name from image
+    # updateMask to ensure only count of cloudy pixels are returned
+    mask_img = img.select([band]).updateMask(cloud_mask)
+    pxl_count = mask_img.reduceRegion(
+        reducer=ee.Reducer.count(),
+        geometry=img.geometry(),
+        maxPixels=1e10
+    )
+    return img.set('mask_pixel_count', ee.Number(pxl_count.get(band)))
+
+def add_cell_level_cloud_cover_property(img):
+    """
+    function to return cell level cloud cover as image metadata property.
+    """
+    return img.set('region_cloudy_percent', ee.Number(img.get('mask_pixel_count')).divide(ee.Number(img.get('region_pixel_count'))))
