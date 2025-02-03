@@ -82,14 +82,16 @@ def item_to_featureCollection(dict_item):
     """
 
     # raise error if gdf is not LineString or Polygon
-    valid_geometry = {'LineString','Polygon','Point'}
+    valid_geometry = {'LineString','Polygon','Point', 'MultiPolygon'}
     if dict_item['geometry']['type'] not in valid_geometry:
-        raise ValueError('Shapefile must be LineString or Polygon.')
+        raise ValueError('Shapefile must be a valid geometry.')
 
     features = []
 
     if dict_item['geometry']['type'] == 'Polygon':
         ee_geometry = ee.Geometry.Polygon(dict_item['geometry']['coordinates'])
+    if dict_item['geometry']['type'] == 'MultiPolygon':
+        ee_geometry = ee.Geometry.MultiPolygon(dict_item['geometry']['coordinates'])
     if dict_item['geometry']['type'] == 'LineString':
         ee_geometry = ee.Geometry.LineString(dict_item['geometry']['coordinates'])
     if dict_item['geometry']['type'] == 'Point':
