@@ -22,8 +22,8 @@ img_bands = {'S2': ['B2', 'B3', 'B4', 'B5', 'B6', 'B7','B8', 'B8A', 'B11', 'B12'
         'LS7': ['B1', 'B2', 'B3', 'B4', 'B5', 'B7'],
         'LS7_sr': ['SR_B1', 'SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B7'],
         'LS8': ['B2', 'B3', 'B4', 'B5', 'B6', 'B7'],
-        'HLSL30': ['B2', 'B3', 'B4', 'B5', 'B6', 'B7'],
-        'HLSS30': ['B2', 'B3', 'B4', 'B5', 'B6', 'B7','B8', 'B8A', 'B11', 'B12'],
+        'HLSL30': ['B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'Fmask'],
+        'HLSS30': ['B2', 'B3', 'B4', 'B5', 'B6', 'B7','B8', 'B8A', 'B11', 'B12', 'Fmask'],
         'LS8_sr': ['SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B6', 'SR_B7'],
         'LS9_sr': ['SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B6', 'SR_B7'],
         'S1': ['HH', 'HV', 'VV', 'VH', 'angle']}
@@ -59,7 +59,9 @@ def rename_img_bands(sensor):
         if sensor == 'S2':
                 names = band_names
         elif sensor == 'HLSS30':
-               names = band_names[:6] + band_names[7:8] + band_names[6:7] + band_names[-2:]
+               names = band_names[:6] + band_names[7:8] + band_names[6:7] + band_names[-2:] + ['Fmask']
+        elif sensor == 'HLSL30':
+               names = band_names[:3] + band_names[6:7] + band_names[-2:] + ['Fmask']
         else:
                 names = band_names[:3] + band_names[6:7] + band_names[-2:]
         
