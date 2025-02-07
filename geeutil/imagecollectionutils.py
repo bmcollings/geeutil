@@ -4,6 +4,7 @@ import geeutil.featureutils as featureutils
 import geeutil.imageutils as imageutils
 import geeutil.s2utils as s2_utils
 import geeutil.lsutils as lsutils
+import geeutil.hlsutils as hlsutils
 import geeutil.ndutils as ndutils
 import os
 from tqdm.contrib.concurrent import thread_map
@@ -150,8 +151,8 @@ def gen_imageCollection(start_date, end_date, roi, sensor, cloud_cover=None, sur
                         collection = collection.filterMetadata('CLOUD_COVERAGE', 'less_than', cloud_cover)
                 
                 # run landsat cloudmasking and rename bands
-                img_collection = (collection 
-                        .map(lsutils.mask_clouds_HLS) 
+                img_collection = (collection
+                        .map(hlsutils.add_cloud_band)
                         .map(rename_img_bands(sensor)))
                 
         # perform landsat cloudmasking
